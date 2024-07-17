@@ -6,7 +6,8 @@ import {
   UserTokenPayload,
 } from "@/utils/jwt";
 import bcrypt from "bcrypt";
-import { findUserByEmail, addSession } from "@/models/userModel";
+import { addSession } from "@/models/sessionModel";
+import { findUserByEmail } from "@/models/userModel";
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();

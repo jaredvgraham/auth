@@ -6,7 +6,7 @@ import {
   UserTokenPayload,
 } from "@/utils/jwt";
 import cookie from "cookie";
-import { findSessionByToken } from "@/models/userModel";
+import { findSessionByToken } from "@/models/sessionModel";
 
 export async function POST(req: NextRequest) {
   const cookies = cookie.parse(req.headers.get("cookie") || "");

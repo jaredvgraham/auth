@@ -10,7 +10,7 @@ import {
   findSessionByToken,
   deleteSessionByToken,
   addSession,
-} from "@/models/userModel";
+} from "@/models/sessionModel";
 
 import cookie from "cookie";
 

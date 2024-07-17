@@ -10,6 +10,7 @@ export const axiosPublic = axios.create({
 });
 
 // Private instance (with token)
+// See on useAxiosPrivate.ts
 export const axiosPrivate = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
   headers: {

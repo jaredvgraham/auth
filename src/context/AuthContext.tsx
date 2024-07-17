@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { axiosPublic } from "@/utils/axios";
 import { usePathname, useRouter } from "next/navigation";
+import useAxiosPrivate from "@/hooks/useAxiosPrivate";
 
 interface AuthContextProps {
   isAuthenticated: boolean;
@@ -28,14 +29,32 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname !== "/signup" && pathname !== "/signin") {
-      refreshSession();
+    const checkAuthentication = async () => {
+      try {
+        await refreshSession();
+        setLoading(false);
+      } catch {
+        setLoading(false);
+      }
+    };
+    checkAuthentication();
+  }, []);
+
+  useEffect(() => {
+    if (
+      !loading &&
+      !isAuthenticated &&
+      pathname !== "/login" &&
+      pathname !== "/signup"
+    ) {
+      router.push("/landing");
     }
-  }, [pathname]);
+  }, [loading, isAuthenticated, pathname]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -52,10 +71,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    setAccessToken(null);
-    setIsAuthenticated(false);
-    router.push("/login");
+  const logout = async () => {
+    try {
+      await axiosPublic.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      setAccessToken(null);
+      setIsAuthenticated(false);
+      router.push("/login");
+    }
   };
 
   const refreshSession = async () => {
@@ -70,7 +95,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error("Failed to refresh session", error);
-      logout();
     }
   };
 

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   createAccessToken,
   createRefreshToken,
-  UserPayload,
+  UserTokenPayload,
 } from "@/utils/jwt";
 import bcrypt from "bcrypt";
 import { findUserByEmail, addSession } from "@/models/userModel";
@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
   const user = await findUserByEmail(email);
 
   if (user && (await bcrypt.compare(password, user.password))) {
-    const accessToken = createAccessToken(user);
-    const refreshToken = createRefreshToken(user);
+    const accessToken = createAccessToken(user as UserTokenPayload);
+    const refreshToken = createRefreshToken(user as UserTokenPayload);
 
     // Store the session in the database
     await addSession(user.id, refreshToken);

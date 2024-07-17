@@ -1,7 +1,17 @@
-// src/app/api/auth/session/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { verifyRefreshToken, createAccessToken } from "@/utils/jwt";
-import { findSessionByToken } from "@/models/userModel";
+import {
+  verifyAccessToken,
+  UserTokenPayload,
+  createAccessToken,
+  createRefreshToken,
+  verifyRefreshToken,
+} from "@/utils/jwt";
+import {
+  findSessionByToken,
+  deleteSessionByToken,
+  addSession,
+} from "@/models/userModel";
+
 import cookie from "cookie";
 
 export async function GET(req: NextRequest) {
@@ -12,16 +22,32 @@ export async function GET(req: NextRequest) {
       { status: 401 }
     );
   }
-
   try {
-    const decoded = verifyRefreshToken(cookies.refreshToken);
+    const decoded = verifyRefreshToken(
+      cookies.refreshToken
+    ) as UserTokenPayload;
     const session = await findSessionByToken(cookies.refreshToken);
     if (!session) {
       return NextResponse.json({ message: "Invalid session" }, { status: 401 });
     }
+    await deleteSessionByToken(cookies.refreshToken);
+
+    const newRefreshToken = createRefreshToken(decoded);
+    console.log("New refresh token:", newRefreshToken);
+
+    await addSession(decoded.id, newRefreshToken);
 
     const accessToken = createAccessToken(decoded);
-    return NextResponse.json({ accessToken });
+    const response = NextResponse.json({ accessToken });
+
+    response.cookies.set("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV !== "development",
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      sameSite: "strict",
+      path: "/",
+    });
+    return response;
   } catch (error) {
     return NextResponse.json(
       { message: "Invalid refresh token" },

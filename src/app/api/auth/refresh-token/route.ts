@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   verifyRefreshToken,
   createAccessToken,
-  UserPayload,
+  UserTokenPayload,
 } from "@/utils/jwt";
 import cookie from "cookie";
 import { findSessionByToken } from "@/models/userModel";
@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const decoded = verifyRefreshToken(cookies.refreshToken) as UserPayload;
+    const decoded = verifyRefreshToken(
+      cookies.refreshToken
+    ) as UserTokenPayload;
     console.log("Decoded refresh token:", decoded);
     const session = await findSessionByToken(cookies.refreshToken);
 

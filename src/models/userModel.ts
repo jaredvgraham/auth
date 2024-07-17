@@ -55,6 +55,13 @@ export const findSessionByToken = async (
   return sessions.findOne({ refreshToken });
 };
 
+export const deleteSessionByToken = async (
+  refreshToken: string
+): Promise<void> => {
+  const sessions = await getSessionCollection();
+  await sessions.deleteOne({ refreshToken });
+};
+
 export const findUserById = async (id: number): Promise<User | null> => {
   const users = await getUserCollection();
   return users.findOne({ id });

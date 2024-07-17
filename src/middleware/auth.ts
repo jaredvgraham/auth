@@ -1,6 +1,6 @@
 // src/middleware/auth.ts
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAccessToken, UserPayload } from "@/utils/jwt";
+import { verifyAccessToken, UserTokenPayload } from "@/utils/jwt";
 
 const authMiddleware = (handler: Function) => {
   console.log("Initializing authMiddleware");
@@ -20,7 +20,7 @@ const authMiddleware = (handler: Function) => {
     const token = authHeader.split(" ")[1];
 
     try {
-      const user = verifyAccessToken(token) as UserPayload;
+      const user = verifyAccessToken(token) as UserTokenPayload;
       (req as any).user = user; // Extend the request with the user object
       return handler(req, res);
     } catch (error) {

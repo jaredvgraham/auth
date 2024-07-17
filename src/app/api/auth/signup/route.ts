@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   createAccessToken,
   createRefreshToken,
-  UserPayload,
+  UserTokenPayload,
 } from "@/utils/jwt";
 import bcrypt from "bcrypt";
 import cookie from "cookie";
@@ -21,9 +21,9 @@ export async function POST(req: NextRequest) {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user: UserPayload = { id: Date.now(), email };
+  const user: UserTokenPayload = { id: Date.now(), email };
 
-  await addUser({ ...user, password: hashedPassword });
+  await addUser({ ...user, password: hashedPassword, createdAt: new Date() });
 
   const accessToken = createAccessToken(user);
   const refreshToken = createRefreshToken(user);

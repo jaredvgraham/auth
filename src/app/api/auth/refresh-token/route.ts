@@ -1,4 +1,3 @@
-// app/api/auth/refresh-token/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import {
   verifyRefreshToken,
@@ -6,9 +5,12 @@ import {
   UserTokenPayload,
 } from "@/utils/jwt";
 import cookie from "cookie";
+import { connect } from "@/utils/mongoose";
 import { findSessionByToken } from "@/models/sessionModel";
 
 export async function POST(req: NextRequest) {
+  await connect();
+
   const cookies = cookie.parse(req.headers.get("cookie") || "");
   console.log("at refresh-token/route.ts, cookies:", cookies);
 

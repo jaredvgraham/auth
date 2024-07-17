@@ -1,4 +1,3 @@
-// src/app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import {
   createAccessToken,
@@ -6,17 +5,23 @@ import {
   UserTokenPayload,
 } from "@/utils/jwt";
 import bcrypt from "bcrypt";
+import { connect } from "@/utils/mongoose";
+import User from "@/models/userModel";
 import { addSession } from "@/models/sessionModel";
-import { findUserByEmail } from "@/models/userModel";
 
 export async function POST(req: NextRequest) {
-  const { email, password } = await req.json();
+  await connect();
 
-  const user = await findUserByEmail(email);
+  const { email, password } = await req.json();
+  const user = await User.findOne({ email });
 
   if (user && (await bcrypt.compare(password, user.password))) {
-    const accessToken = createAccessToken(user as UserTokenPayload);
-    const refreshToken = createRefreshToken(user as UserTokenPayload);
+    const userTokenPayload: UserTokenPayload = {
+      id: user.id,
+      email: user.email,
+    };
+    const accessToken = createAccessToken(userTokenPayload);
+    const refreshToken = createRefreshToken(userTokenPayload);
 
     // Store the session in the database
     await addSession(user.id, refreshToken);

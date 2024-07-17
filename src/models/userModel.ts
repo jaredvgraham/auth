@@ -1,30 +1,34 @@
-import clientPromise from "@/utils/mongodb";
-import { Collection } from "mongodb";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
-interface User {
+// Define the IUser interface extending Document for TypeScript type-checking
+interface IUser extends Document {
   id: number;
   email: string;
   password: string;
   createdAt: Date;
 }
 
-const getUserCollection = async (): Promise<Collection<User>> => {
-  const client = await clientPromise;
-  const db = client.db();
-  return db.collection<User>("users");
+// Create the user schema with Mongoose, ensuring it matches the IUser interface
+const userSchema: Schema<IUser> = new Schema({
+  id: { type: Number, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+// Define the User model using the schema and IUser interface
+const User: Model<IUser> =
+  mongoose.models.User || mongoose.model<IUser>("User", userSchema);
+export default User;
+
+export const findUserByEmail = async (email: string): Promise<IUser | null> => {
+  return User.findOne({ email });
 };
 
-export const findUserByEmail = async (email: string): Promise<User | null> => {
-  const users = await getUserCollection();
-  return users.findOne({ email });
+export const addUser = async (user: IUser): Promise<void> => {
+  await user.save();
 };
 
-export const addUser = async (user: User): Promise<void> => {
-  const users = await getUserCollection();
-  await users.insertOne(user);
-};
-
-export const findUserById = async (id: number): Promise<User | null> => {
-  const users = await getUserCollection();
-  return users.findOne({ id });
+export const findUserById = async (id: number): Promise<IUser | null> => {
+  return User.findOne({ id });
 };

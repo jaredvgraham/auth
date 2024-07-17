@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const refreshSession = async () => {
     try {
-      const response = await axiosPublic.get("/auth/session", {
+      const response = await axiosPublic.post("/auth/session", {
         withCredentials: true,
       });
       const { accessToken } = response.data;

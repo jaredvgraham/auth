@@ -1,18 +1,21 @@
-// app/api/auth/signup/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import {
   createAccessToken,
   createRefreshToken,
   UserTokenPayload,
 } from "@/utils/jwt";
+
 import bcrypt from "bcrypt";
 import cookie from "cookie";
-import { addUser, findUserByEmail } from "@/models/userModel";
+import User, { findUserByEmail, addUser } from "@/models/userModel";
+import { connect } from "@/utils/mongoose";
 
 export async function POST(req: NextRequest) {
+  await connect();
   const { email, password } = await req.json();
 
   const existingUser = await findUserByEmail(email);
+
   if (existingUser) {
     return NextResponse.json(
       { message: "User already exists" },
@@ -21,14 +24,25 @@ export async function POST(req: NextRequest) {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user: UserTokenPayload = { id: Date.now(), email };
+  const newUser = new User({
+    id: Math.floor(Math.random() * 1000000),
+    email,
+    password: hashedPassword,
+    createdAt: new Date(),
+  });
 
-  await addUser({ ...user, password: hashedPassword, createdAt: new Date() });
+  await addUser(newUser);
 
-  const accessToken = createAccessToken(user);
-  const refreshToken = createRefreshToken(user);
+  const userTokenPayload: UserTokenPayload = {
+    id: newUser.id,
+    email: newUser.email,
+  };
+
+  const accessToken = createAccessToken(userTokenPayload);
+  const refreshToken = createRefreshToken(userTokenPayload);
 
   const response = NextResponse.json({ accessToken });
+
   response.cookies.set("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV !== "development",
@@ -36,6 +50,5 @@ export async function POST(req: NextRequest) {
     sameSite: "strict",
     path: "/",
   });
-
   return response;
 }

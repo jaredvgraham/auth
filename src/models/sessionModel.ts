@@ -1,40 +1,38 @@
-import clientPromise from "@/utils/mongodb";
-import { Collection } from "mongodb";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
-interface Session {
+interface ISession extends Document {
   userId: number;
   refreshToken: string;
   createdAt: Date;
 }
 
-const getSessionCollection = async (): Promise<Collection<Session>> => {
-  const client = await clientPromise;
-  const db = client.db();
-  return db.collection<Session>("sessions");
-};
+const sessionSchema: Schema<ISession> = new Schema({
+  userId: { type: Number, required: true, ref: "User" },
+  refreshToken: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const Session: Model<ISession> =
+  mongoose.models.Session || mongoose.model<ISession>("Session", sessionSchema);
+
+export default Session;
 
 export const addSession = async (
   userId: number,
   refreshToken: string
 ): Promise<void> => {
-  const sessions = await getSessionCollection();
-  await sessions.insertOne({
-    userId,
-    refreshToken,
-    createdAt: new Date(),
-  });
+  const session = new Session({ userId, refreshToken });
+  await session.save();
 };
 
 export const findSessionByToken = async (
   refreshToken: string
-): Promise<Session | null> => {
-  const sessions = await getSessionCollection();
-  return sessions.findOne({ refreshToken });
+): Promise<ISession | null> => {
+  return Session.findOne({ refreshToken });
 };
 
 export const deleteSessionByToken = async (
   refreshToken: string
 ): Promise<void> => {
-  const sessions = await getSessionCollection();
-  await sessions.deleteOne({ refreshToken });
+  await Session.deleteOne({ refreshToken });
 };

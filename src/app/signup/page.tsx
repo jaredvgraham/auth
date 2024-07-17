@@ -25,14 +25,14 @@ const SignUp = () => {
     }),
     onSubmit: async (values) => {
       try {
-        const res = await axiosPublic.post("/auth/sign-up", values);
+        const res = await axiosPublic.post("/auth/signup", values);
         // Handle successful signup
         const { token } = res.data;
 
         // Store the token in local storage or cookies
         localStorage.setItem("token", token);
 
-        router.push("/signin"); // Redirect to dashboard or other page after successful signup
+        router.push("/login"); // Redirect to dashboard or other page after successful signup
       } catch (err: any) {
         setError(err.message);
       }

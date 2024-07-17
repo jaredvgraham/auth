@@ -12,7 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 const SignIn = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { setAccessToken } = useAuth();
+  const { setAccessToken, setIsAuthenticated } = useAuth();
 
   const formik = useFormik({
     initialValues: {
@@ -31,6 +31,7 @@ const SignIn = () => {
         const { accessToken } = res.data;
 
         setAccessToken(accessToken);
+        setIsAuthenticated(true);
 
         router.push("/protected"); // Redirect to protected page after successful sign-in
       } catch (err: any) {

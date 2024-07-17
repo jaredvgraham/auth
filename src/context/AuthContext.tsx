@@ -15,6 +15,7 @@ interface AuthContextProps {
   isAuthenticated: boolean;
   accessToken: string | null;
   setAccessToken: (accessToken: string) => void;
+  setIsAuthenticated: (isAuthenticated: boolean) => void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   refreshSession: () => Promise<void>;
@@ -37,8 +38,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkAuthentication = async () => {
       try {
         await refreshSession();
-        setLoading(false);
       } catch {
+        // handle error if necessary
+        console.log("Session expired");
+      } finally {
         setLoading(false);
       }
     };
@@ -49,13 +52,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (
       !loading &&
       !isAuthenticated &&
-      pathname !== "/login" &&
-      pathname !== "/signup"
+      !["/login", "/signup", "/landing"].includes(pathname)
     ) {
       router.push("/landing");
     }
   }, [loading, isAuthenticated, pathname]);
-
   const login = async (email: string, password: string) => {
     try {
       const response = await axiosPublic.post("/auth/login", {
@@ -104,6 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated,
         accessToken,
         setAccessToken,
+        setIsAuthenticated,
         login,
         logout,
         refreshSession,
